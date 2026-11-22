@@ -1,12 +1,40 @@
 # Veylark City
 
-A browser-based coastal flight and driving game. Fly a medical delivery to the Miramar rooftop, drive the waterfront, or take the Roadster across the bay.
+Fly a medical delivery across a coastal city in **Rooftop Run**, a mission designed with **Kimi K3.1 Pro on Cerebras through standard OpenClaw**. Kimi writes a flight briefing, chooses how high each of five checkpoints should be relative to the route, and sets the time available to reach the rooftop. The game applies those decisions to the flight you play.
 
-## Play
+**[Play Rooftop Run in your browser](https://chrisbacale.github.io/veylark-city/)** · Select **Start mission** to fly manually or **Fly with assist** for guided flight.
 
-[Play Veylark City in your browser](https://veylark-city.optimisticcloth2.chatgpt.site/)
+## From Kimi’s response to the cockpit
 
-Open `index.html` in a browser with WebGL 2 and hardware acceleration. The game runs offline after you extract the full ZIP. **Start mission** opens the timed delivery. **Fly with assist** enables assistance.
+In the recorded November 22 run, Kimi returned a Spanish mission title and briefing, a **135-second** time limit, and five altitude adjustments in meters: `[4, -3, 2, -4, 0]`. The published mission adapts the title and briefing to English and uses the five adjustments and time limit from that response.
+
+| Checkpoint | Base height | Kimi’s adjustment | In-game target |
+| --- | ---: | ---: | ---: |
+| Canal entrance | 26 m | +4 m | 30 m |
+| Bay bridge | 37 m | −3 m | 34 m |
+| Marina del Sol | 32 m | +2 m | 34 m |
+| Palm promenade | 42 m | −4 m | 38 m |
+| Miramar approach | 32 m | 0 m | 32 m |
+
+At takeoff, the timer starts at **02:15** and the first objective reads **Canal entrance · 30 m**. The city, checkpoint positions and rooftop belong to the simulator. The browser loads the saved mission, so anyone can fly it without an API key, including offline from a downloaded copy.
+
+**Recorded generation time:** OpenClaw reported **5.274 seconds** for the agent run. The complete command took **7.843 seconds** from launch to response. Both figures come from one run and describe mission generation. [Saved mission](juego/mision.js) · [How the simulator applies the response](fuentes/jugar.js)
+
+## Generate another mission
+
+With standard OpenClaw configured to use `cerebras/moonshotai-kimi-k3.1-pro-trial`, run these commands from the repository root. The included English prompt requests a new mission on the same route.
+
+```sh
+openclaw agent --session-key agent:main:veylark-demo --thinking off \
+  --message-file herramientas/encargo.txt --json > respuesta-openclaw.json
+node herramientas/importar-mision.mjs respuesta-openclaw.json
+```
+
+The importer checks the reported provider and model, validates the title, briefing, timer and five offsets, and writes the accepted mission to `juego/mision.js`. Open or reload your local `index.html` to fly it. [Mission prompt](herramientas/encargo.txt) · [Importer](herramientas/importar-mision.mjs)
+
+## Controls
+
+Use a browser with WebGL 2 and hardware acceleration. The menu also offers a coastal drive and free flight.
 
 | Action | Keyboard | Touch |
 | --- | --- | --- |
@@ -17,20 +45,6 @@ Open `index.html` in a browser with WebGL 2 and hardware acceleration. The game 
 | Land on the rooftop | E | Land |
 | Change camera or look around | C or drag to look | Camera or swipe to look |
 | Open controls and change vehicle | Esc | Pause |
-
-## Rooftop Run
-
-Kimi K3.1 Pro on Cerebras, through standard OpenClaw, generated this flight's five target heights and 135-second window. Fly through the checkpoints at **30, 34, 34, 38, and 32 meters**, then land at Miramar. The included briefing was adapted to English from the recorded run of November 22, 2026. The command took **7.843 seconds** from launch to response.
-
-The game loads the saved mission and can play it offline. Generate a new mission with OpenClaw configured for `cerebras/moonshotai-kimi-k3.1-pro-trial`.
-
-```sh
-openclaw agent --session-key agent:main:veylark-demo --thinking low \
-  --message-file herramientas/encargo.txt --json > respuesta-openclaw.json
-node herramientas/importar-mision.mjs respuesta-openclaw.json
-```
-
-The importer verifies the model and validates the five heights and time limit. Reload the game to play the new mission.
 
 ## Project files
 
