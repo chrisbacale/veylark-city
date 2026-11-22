@@ -1,0 +1,7 @@
+evidencia/
+.DS_Store
+/respuesta-openclaw.json
+
+.env
+.env.*
+*.log

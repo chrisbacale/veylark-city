@@ -1,0 +1,289 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta http-equiv="Content-Security-Policy" content="connect-src 'none'"><link rel="icon" href="data:,"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="theme-color" content="#121316"><title>Veylark City</title>
+<style>
+@font-face {
+  font-family: 'Barlow Condensed';
+  src: url('fonts/barlow-condensed-600.woff2') format('woff2');
+  font-weight: 600;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'Instrument Sans';
+  src: url('fonts/instrument-sans.woff2') format('woff2');
+  font-weight: 400 700;
+  font-display: swap;
+}
+:root {
+  color-scheme: dark;
+  --ink: #f8f5ee;
+  --muted: #d1cac1;
+  --accent: #f4cf89;
+  --line: #e5ded044;
+  --panel: #13161bec;
+  --system: "Instrument Sans", "Segoe UI", system-ui, sans-serif;
+  --instrument: "Instrument Sans", "Segoe UI", system-ui, sans-serif;
+}
+* { box-sizing: border-box; }
+html, body { width: 100%; height: 100%; margin: 0; overflow: hidden; background: #121316; color: var(--ink); font: 16px var(--system); }
+[hidden] { display: none !important; }
+canvas { display: block; }
+#world { position: absolute; inset: 0; width: 100%; height: 100%; touch-action: none; }
+button {
+  min-height: 44px;
+  padding: .62rem .88rem;
+  font: 680 .86rem/1.15 var(--system);
+  color: var(--ink);
+  background: #20232cec;
+  border: 1px solid #e4ddd150;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: background-color 150ms, border-color 150ms, color 150ms;
+}
+button:focus-visible { outline: 2px solid #ffe0a2; outline-offset: 3px; }
+button:active { background: #38363b; }
+.primary { color: #21180c; border-color: #f9dfa8; background: var(--accent); }
+.primary:active { background: #fae0ac; }
+@media (hover: hover) {
+  button:hover { background: #342f2b; border-color: var(--accent); }
+  .primary:hover { color: #21180c; background: #fde3ad; }
+}
+#cover {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  align-items: end;
+  background:
+    linear-gradient(0deg, #0c1018 0%, #0d1119df 18%, #10131b55 47%, transparent 78%),
+    linear-gradient(90deg, #0d1019d8, #10131b39 48%, transparent 72%);
+  pointer-events: none;
+}
+#cover article {
+  --gutter: clamp(1.5rem, 6vw, 6rem);
+  width: min(100%, 49rem);
+  padding: 1rem 1rem max(clamp(2rem, 7vh, 5rem), env(safe-area-inset-bottom)) max(var(--gutter), env(safe-area-inset-left));
+  max-height: 100%;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  pointer-events: auto;
+}
+h1 {
+  margin: 0 0 .88rem;
+  color: #faf5e9;
+  font: 600 clamp(4.6rem, 8.6vw, 8rem)/.86 'Barlow Condensed', 'Avenir Next Condensed', 'Arial Narrow', sans-serif;
+  letter-spacing: .005em;
+  text-transform: uppercase;
+  text-shadow: 0 .07em .55em #0b101980;
+}
+#mission-title { margin: 0 0 .3rem; font-size: 1.3rem; font-weight: 650; line-height: 1.24; }
+#intro { margin: 0; max-width: 33rem; color: #e6dfd4; font-size: 1.05rem; line-height: 1.48; }
+#mission-parameters {
+  margin: .62rem 0 0;
+  color: var(--accent);
+  font-size: .92rem;
+  font-weight: 650;
+  font-variant-numeric: tabular-nums;
+}
+#cover-actions { display: grid; gap: .65rem; margin: 1.2rem 0 0; }
+.flight-actions, .explore-actions, #pause-actions { display: flex; flex-wrap: wrap; gap: .4rem .7rem; }
+#pause-actions { margin-top: 1.2rem; }
+.flight-actions button { min-height: 48px; padding: .57rem 1rem; font-size: 1rem; }
+#fly span { margin-left: 1.25rem; }
+#guide { background: #11151ee5; }
+.explore-actions button {
+  min-height: 44px;
+  padding: .55rem .72rem .55rem .08rem;
+  border-color: transparent;
+  background: transparent;
+  color: #e1d9ce;
+  font-size: .95rem;
+}
+.explore-actions button:hover { color: #ffe2a7; }
+
+.top, .bottom, #tools, #touch, #notice { position: absolute; }
+.top, .bottom, #notice {
+  color: var(--ink);
+  background: var(--panel);
+  border: 1px solid var(--line);
+  box-shadow: 0 .3rem 1.3rem #060e1459;
+}
+.top {
+  top: max(1rem, env(safe-area-inset-top));
+  left: max(1rem, env(safe-area-inset-left));
+  width: fit-content;
+  max-width: min(55vw, 30rem);
+  padding: .66rem .9rem .68rem;
+  border-left: 3px solid var(--accent);
+  border-radius: 0 4px 4px 0;
+}
+.top small, .bottom small {
+  display: block;
+  color: var(--accent);
+  font: 650 .78rem/1.2 var(--instrument);
+}
+.top b { display: block; margin-top: .34rem; font-size: clamp(.91rem, 1.7vw, 1.14rem); font-weight: 650; line-height: 1.17; }
+.bottom {
+  right: max(1rem, env(safe-area-inset-right));
+  bottom: max(1rem, env(safe-area-inset-bottom));
+  min-width: 8rem;
+  padding: .5rem .8rem .65rem;
+  border-radius: 4px;
+  text-align: right;
+}
+.bottom b { font: 700 clamp(1.48rem, 2.9vw, 2.35rem)/1 var(--instrument); font-variant-numeric: tabular-nums; }
+.bottom span { color: var(--muted); font: 620 .72rem var(--instrument); }
+.bottom .measurements { display: flex; gap: .55rem; justify-content: flex-end; margin-top: .38rem; }
+.bottom small { font-variant-numeric: tabular-nums; white-space: nowrap; }
+#alt { color: var(--muted); }
+#tools {
+  top: max(1rem, env(safe-area-inset-top));
+  right: max(1rem, env(safe-area-inset-right));
+  display: flex;
+  gap: .38rem;
+}
+#tools button { padding: .42rem .68rem; font-size: .79rem; }
+#notice {
+  bottom: max(1.2rem, env(safe-area-inset-bottom));
+  left: 50%;
+  transform: translateX(-50%);
+  width: max-content;
+  max-width: min(48vw, 38rem);
+  padding: .55rem .75rem;
+  border-radius: 4px;
+  color: #f4efe7;
+  font-size: .8rem;
+  text-align: center;
+  line-height: 1.35;
+  pointer-events: none;
+}
+#pause {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  width: min(30rem, calc(100% - 2rem));
+  max-height: calc(100% - 2rem);
+  padding: clamp(1.05rem, 4vw, 1.85rem);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  background: #14171df9;
+  border: 1px solid #dbceba70;
+  border-top: 3px solid var(--accent);
+  border-radius: 5px;
+  box-shadow: 0 1.5rem 6rem #000b;
+}
+#pause h2 { margin: 0 0 .6rem; font-size: clamp(1.65rem, 4vw, 2.25rem); line-height: 1.05; font-weight: 800; letter-spacing: -.04em; }
+#pause p { margin: 0; color: #ddd6cc; line-height: 1.55; }
+#touch {
+  inset: auto max(.65rem, env(safe-area-inset-right)) max(.65rem, env(safe-area-inset-bottom)) max(.65rem, env(safe-area-inset-left));
+  display: none;
+  justify-content: space-between;
+  pointer-events: none;
+}
+#touch div { display: grid; grid-template-columns: repeat(2, minmax(44px, 3.6rem)); gap: .32rem; pointer-events: auto; }
+#touch button {
+  touch-action: none;
+  user-select: none;
+  -webkit-user-select: none;
+  background: #1b1d24ee;
+  min-width: 44px;
+  min-height: 46px;
+  padding: .18rem;
+  font: 700 .73rem/1 var(--system);
+  text-align: center;
+}
+#touch button[data-key] { font-size: .64rem; letter-spacing: .015em; text-transform: uppercase; }
+#touch button[data-key] span { display: block; margin-top: .12rem; font-size: .83rem; }
+#touch button:active, #touch button[data-held]:not([data-held="false"]) {
+  color: #22190c;
+  border-color: #ffe3aa;
+  background: var(--accent);
+}
+#loading { color: var(--accent); }
+@media (pointer: coarse), (max-width: 760px) {
+  #touch { display: flex; }
+  .bottom { bottom: calc(max(.65rem, env(safe-area-inset-bottom)) + 6.5rem); }
+  #notice { bottom: calc(max(.65rem, env(safe-area-inset-bottom)) + 6.6rem); max-width: min(43%, 25rem); font-size: .75rem; }
+}
+@media (max-width: 600px) {
+  #cover { background: linear-gradient(0deg, #0c1018 0%, #0c1018e8 30%, #10131b5c 65%, transparent); }
+  #cover article { width: 100%; padding: 1rem max(1.1rem, env(safe-area-inset-right)) max(1.15rem, env(safe-area-inset-bottom)) max(1.1rem, env(safe-area-inset-left)); }
+  h1 { font-size: clamp(3.25rem, 15.4vw, 5rem); margin-bottom: .66rem; }
+  #intro { font-size: 1rem; }
+  #cover-actions { margin-top: .78rem; gap: .23rem; }
+  .flight-actions { gap: .42rem; }
+  .flight-actions button { font-size: .9rem; padding-inline: .73rem; }
+  #fly span { margin-left: .65rem; }
+
+  .top { top: max(.65rem, env(safe-area-inset-top)); left: max(.65rem, env(safe-area-inset-left)); max-width: calc(100% - 9.1rem); padding: .55rem .58rem; }
+  .top small, .bottom small { font-size: .73rem; }
+  #tools { top: max(.65rem, env(safe-area-inset-top)); right: max(.65rem, env(safe-area-inset-right)); }
+  #tools button { padding: .4rem .48rem; font-size: .75rem; }
+  .bottom { right: max(.65rem, env(safe-area-inset-right)); min-width: 0; padding: .43rem .52rem; }
+  #notice { left: max(.65rem, env(safe-area-inset-left)); transform: none; max-width: calc(100% - 11.2rem); text-align: left; }
+}
+@media (max-height: 460px) and (orientation: landscape) {
+  #cover { align-items: center; background: linear-gradient(90deg, #0c1018ef 0%, #11161dcc 36%, #11161d20 76%, transparent); }
+  #cover article { padding-block: .7rem; }
+  h1 { font-size: clamp(3.3rem, 15vh, 4.5rem); margin-bottom: .48rem; }
+  #intro { font-size: .85rem; line-height: 1.45; }
+  #cover-actions { margin-top: .55rem; gap: .22rem; }
+
+  #mission-title { margin-bottom: .3rem; }
+  #mission-parameters { margin-top: .45rem; }
+}
+@media (orientation: landscape) and (pointer: coarse) and (max-height: 460px) {
+  #notice {
+    bottom: max(.65rem, env(safe-area-inset-bottom));
+    max-width: min(calc(100% - 17rem), 26rem);
+  }
+}
+@media (prefers-reduced-motion: reduce) { button { transition: none; } }
+</style></head><body><canvas id="world" aria-label="Interactive 3D coastal city with flight and driving"></canvas>
+<main id="cover" aria-labelledby="game-title">
+  <article>
+    <h1 id="game-title">Veylark City</h1>
+    <h2 id="mission-title" hidden></h2>
+    <p id="intro">Fly a delivery to the Miramar rooftop.</p>
+    <p id="mission-parameters" hidden></p>
+    <p id="loading" role="status">Loading Veylark City…</p>
+    <div id="cover-actions" hidden>
+      <div class="flight-actions">
+        <button id="fly" class="primary">Start mission<span aria-hidden="true">→</span></button>
+        <button id="guide">Fly with assist</button>
+      </div>
+      <div class="explore-actions">
+        <button id="drive">Coastal drive</button>
+        <button id="tesla">Free flight</button>
+      </div>
+    </div>
+  </article>
+</main>
+<div id="hud" hidden><div class="top"><small id="district"></small><b id="objective"></b></div><div id="tools"><button id="view" title="Change camera (C)">Camera</button><button id="pause-b" title="Pause and view controls (Esc)">Pause</button></div><div class="bottom"><b id="speed">0</b> <span>km/h</span><div class="measurements"><small id="alt"></small><small id="countdown"></small></div></div><div id="notice" role="status"></div><div id="touch"><div><button data-key="a" aria-label="Steer left">Left<span aria-hidden="true">←</span></button><button data-key="d" aria-label="Steer right">Right<span aria-hidden="true">→</span></button><button data-key="control" aria-label="Descend">Descend<span aria-hidden="true">↓</span></button><button data-key=" " aria-label="Climb or engage the handbrake">Climb<span aria-hidden="true">↑</span></button></div><div><button data-key="w" aria-label="Increase power or accelerate">Throttle<span aria-hidden="true">+</span></button><button data-key="s" aria-label="Reduce power or brake">Throttle<span aria-hidden="true">−</span></button><button id="touch-auto">Assist</button><button id="touch-use">Land</button></div></div></div>
+<div id="pause" role="dialog" aria-modal="true" aria-labelledby="pause-title" aria-describedby="controls" hidden><h2 id="pause-title">Pause</h2><p id="controls"></p><div id="pause-actions"><button class="primary" id="resume">Resume</button><button id="change">Switch vehicle</button><button id="change-tesla">Free flight</button><button id="auto">Flight assist</button><button id="mute">Mute</button><button id="return">Main menu</button></div></div>
+<script src="motor/three.js"></script>
+<script src="motor/fflate.js"></script>
+<script src="motor/cargar-recursos.js"></script>
+<script src="recursos/metadatos.js"></script>
+<script src="recursos/escena.js"></script>
+<script src="recursos/bloque-01.js"></script>
+<script src="recursos/bloque-02.js"></script>
+<script src="recursos/bloque-03.js"></script>
+<script src="recursos/bloque-04.js"></script>
+<script src="recursos/bloque-05.js"></script>
+<script src="recursos/bloque-06.js"></script>
+<script src="recursos/bloque-07.js"></script>
+<script src="recursos/bloque-08.js"></script>
+<script src="recursos/bloque-09.js"></script>
+<script src="recursos/bloque-10.js"></script>
+<script src="recursos/bloque-11.js"></script>
+<script src="recursos/bloque-12.js"></script>
+<script src="recursos/bloque-13.js"></script>
+<script src="recursos/bloque-14.js"></script>
+<script src="recursos/bloque-15.js"></script>
+<script src="recursos/bloque-16.js"></script>
+<script src="recursos/bloque-17.js"></script>
+<script src="recursos/bloque-18.js"></script>
+<script src="recursos/bloque-19.js"></script>
+<script src="recursos/bloque-20.js"></script>
+<script src="juego/mision.js"></script>
+<script src="juego/jugar.js"></script>
+</body></html>
